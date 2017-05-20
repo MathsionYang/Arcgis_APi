@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Foundation 实例</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdn.bootcss.com/foundation/5.5.3/css/foundation.min.css">
+  <script src="https://cdn.bootcss.com/jquery/2.1.1/jquery.min.js"></script>
+  <script src="https://cdn.bootcss.com/foundation/5.5.3/js/foundation.min.js"></script>
+  <script src="https://cdn.bootcss.com/foundation/5.5.3/js/vendor/modernizr.js"></script>
+  <link rel="stylesheet" href="https://js.arcgis.com/4.3/esri/css/main.css">
+  <script src="https://js.arcgis.com/4.3/"></script>
+  </head>
+  <script>
+   require([
+      "esri/Map",
+      "esri/views/MapView",
+      "esri/Graphic",
+      "esri/symbols/SimpleMarkerSymbol",
+      
+      "dojo/on",
+      "dojo/dom",
+      "dojo/domReady!"
+    ], function(
+      Map, MapView,
+      Graphic,  
+      SimpleMarkerSymbol,
+      on, dom
+    ) {
+      
+      var isClick = false;
+      var map = new Map({
+        basemap: "hybrid"
+      });
+      var view = new MapView({
+        center: [-80, 35],
+        container: "viewDiv",
+        map: map,
+        zoom: 3
+      });
+      var markerSymbol = new SimpleMarkerSymbol({
+        color : [226, 119, 40],
+        outline: {
+        color: [255,255,255],
+        width: 2
+        }
+      });
+      on(dom.byId("ctrlClick"), "click", function(){
+        isClick = !isClick;
+        <!-- console.log(isClick); -->
+      });
+      var p;
+      on(view, "click", function (event){
+        if(isClick === false){
+        }
+        else{
+			 p = new Graphic({
+			geometry: event.mapPoint,
+			symbol: markerSymbol });
+			view.graphics.addMany([p]);
+			//console.log(event.mapPoint.x+","+event.mapPoint.y);
+        }
+      });
+    });
+  </script>
+<body>
+
+<nav class="top-bar" data-topbar>
+  <ul class="title-area">
+    <li class="name">
+      <h1><a href="#">Point Graphic</a></h1>
+    </li>
+      <!-- 小屏幕上折叠按钮: 去掉 .menu-icon 类，可以去除图标。 
+      如果需要只显示图片，可以删除 "Menu" 文本 -->
+    <li class="toggle-topbar menu-icon"><a href="#"><span>Menu</span></a></li>
+  </ul>
+
+  <section class="top-bar-section">
+    <ul class="left">
+      <li class="active"><a href="javascript:history.go(-1);">Home</a></li>
+      <li id="ctrlClick"><a>Draw</a></li>
+      <li><a href="javascript:history.go(-1);">Previous</a></li>
+    </ul>
+  </section>
+</nav>
+
+<div id="viewDiv" style=" padding: 0; margin: 0; height: 95%; width: 100%;">
+  
+</div>
+
+<!-- 初始化 Foundation JS -->
+<script>
+$(document).ready(function() {
+    $(document).foundation();
+})
+</script>
+
+</body>
+</html>

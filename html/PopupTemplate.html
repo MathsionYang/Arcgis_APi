@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
+  <title>PopupTemplate Function - 4.3</title>
+   <link rel="stylesheet" href="https://cdn.bootcss.com/foundation/5.5.3/css/foundation.min.css">
+  <script src="https://cdn.bootcss.com/jquery/2.1.1/jquery.min.js"></script>
+  <script src="https://cdn.bootcss.com/foundation/5.5.3/js/foundation.min.js"></script>
+  <script src="https://cdn.bootcss.com/foundation/5.5.3/js/vendor/modernizr.js"></script>
+  <link rel="stylesheet" href="https://js.arcgis.com/4.3/esri/css/main.css">
+  <script src="https://js.arcgis.com/4.3/"></script>
+  <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+
+      height: 98%;
+      width: 100%;
+    }
+	
+  </style>
+	<script type="text/plain" id="people_AGE">
+	  var AGE5564 = $feature.AGE_55_64;
+	  var AGE6574 = $feature.AGE_65_74;
+	  var AGE7584 = $feature.AGE_75_84;
+	  var AGE85 = $feature.AGE_85_UP;
+	  var parties = [AGE5564, AGE6574, AGE7584,AGE85];
+	  return Decode( Max(parties),
+		AGE5564, 'AGE5564',
+		AGE6574, 'AGE6574',
+		AGE7584, 'AGE7584',
+		AGE85,   'AGE85',
+		'n/a' );
+	</script>
+	<script type="text/plain" id="strength">
+	  var AGE5564 = $feature.AGE_55_64;
+	  var AGE6574 = $feature.AGE_65_74;
+	  var AGE7584 = $feature.AGE_75_84;
+	  var AGE85 = $feature.AGE_85_UP;
+	  var parties = [AGE5564, AGE6574, AGE7584,AGE85];
+	  var total = Sum(parties);
+	  var max = Max(parties);
+	  return (max / total) * 100;
+	</script>  
+  <script>
+    var populationChange;
+    require([
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/layers/FeatureLayer",
+		"esri/renderers/UniqueValueRenderer",
+        "esri/symbols/SimpleFillSymbol",
+		"esri/symbols/SimpleMarkerSymbol",
+		"esri/widgets/Legend",
+        "esri/widgets/Search",
+        "dojo/dom",
+        "dojo/number",
+        "dojo/on",
+        "dojo/domReady!"
+      ],
+      function(
+        Map, MapView, FeatureLayer,UniqueValueRenderer,SimpleMarkerSymbol,SimpleFillSymbol,Legend,Search,
+        dom, number, on
+      ) {
+	      var winnerArcade = document.getElementById("people_AGE").text;
+		  var renderer = new UniqueValueRenderer({
+				valueExpression: winnerArcade,
+			   // valueExpressionTitle: "Counties by dominant party among registered voters",
+				uniqueValueInfos: [{
+				  value: "AGE5564",
+				  symbol: createSymbol("#00c3ff"),
+				  label: "55_64岁人口"
+				}, {
+				  value: "AGE6574",
+				  symbol: createSymbol("#ff002e"),
+				  label: "65_74岁人口"
+				}, {
+				  value: "AGE7584",
+				  symbol: createSymbol("#faff00"),
+				  label: "75_84岁人口"
+				},{
+				  value: "AGE85",
+				  symbol: createSymbol("#0000FF"),
+				  label: "85岁以上人口"
+				}
+				]
+			  });
+			   var strengthArcade = document.getElementById("strength").text;
+				  renderer.visualVariables = [{
+					type: "opacity",
+					valueExpression: strengthArcade,
+					//valueExpressionTitle: "Share of registered voters comprising the dominant party",
+					stops: [
+					  { value: 33, opacity: 0.05, label: "< 33%" },
+					  { value: 44, opacity: 1.0, label: "> 44%" }
+					]
+				  }];
+		  var layer = new FeatureLayer({
+			portalItem: {
+			  id: "e8f85b4982a24210b9c8aa20ba4e1bf7"
+			},
+			outFields: [ "AGE_55_64", "AGE_65_74", "AGE_75_84", "AGE_85_UP", "NAME" , "MALES", "FEMALES"],
+			popupTemplate: {
+			  title: "This is {NAME}",
+			  content: [{
+				type: "fields",
+				fieldInfos: [{
+				  fieldName: "AGE_55_64",
+				  label: "55_64岁人口",
+				  format: {
+					digitSeparator: true,
+					places: 0
+				  }
+				}, {
+				  fieldName: "AGE_65_74",
+				  label: "65_74岁人口",
+				  format: {
+					digitSeparator: true,
+					places: 0
+				  }
+				}, 
+				{
+				  fieldName: "AGE_75_84",
+				  label: "75_84岁人口",
+				  format: {
+					digitSeparator: true,
+					places: 0
+				  }
+				}, 
+				{
+				  fieldName: "AGE_85_UP",
+				  label: "85岁以上人口",
+				  format: {
+					digitSeparator: true,
+					places: 0
+				  }
+				}, 
+				{
+				  fieldName: "MALES",
+				  label: "男性",
+				  format: {
+					digitSeparator: true,
+					places: 0
+				  }
+				}, {
+				  fieldName: "FEMALES",
+				  label: "女性",
+				  format: {
+					digitSeparator: true,
+					places: 0
+				  }
+				}]
+			  }]
+			}
+		  });
+		var map = new Map({
+          basemap: "dark-gray",
+		  layers:[layer]
+	
+        });
+
+        // Create the MapView and reference the Map in the instance
+        var view = new MapView({
+          container: "viewDiv",
+          map: map,
+          center: [-86.049, 38.485],
+          zoom: 3
+        });
+	   var legend = new Legend({
+		view: view,
+		layerInfos: [{
+		  layer: layer,
+		  title: "州"
+		}]
+	  });
+        view.ui.add(legend, "bottom-left");
+	   var searchWidget = new Search({
+        view: view
+      });
+
+    //   // Add the search widget to the very top left corner of the view
+      view.ui.add(searchWidget, {
+        position: "top-right",
+        index: 0
+      });
+	  	  function createSymbol (color){
+			return new SimpleFillSymbol({
+			  color: color,
+			  outline: {
+				width: 0.5,
+				color: [ 255, 0, 0, 0.2 ]
+			  }
+			});
+		  }
+		var markerSymbol = new SimpleMarkerSymbol({
+        color: [226, 119, 40],
+        outline: { // autocasts as new SimpleLineSymbol()
+        color: [255, 255, 255],
+        width: 2
+        }
+      });
+	   on(view, "click", addStop);
+       	function addPoint(event){
+		var pointGraphic = new Graphic({
+        geometry: event.mapPoint,
+        symbol: markerSymbol
+      });
+      view.graphics.addMany([pointGraphic]);}
+	 
+	
+        });
+  </script>
+</head>
+<body>
+<nav class="top-bar" data-topbar>
+  <ul class="title-area">
+    <li class="name">
+      <h1><a href="#">PopupTemplate</a></h1>
+    </li>
+      <!-- 小屏幕上折叠按钮: 去掉 .menu-icon 类，可以去除图标。 
+      如果需要只显示图片，可以删除 "Menu" 文本 -->
+    <li class="toggle-topbar menu-icon"><a href="#"><span>Menu</span></a></li>
+  </ul>
+
+  <section class="top-bar-section">
+    <ul class="left">
+      <li class="active"><a href="javascript:history.go(-1);">Home</a></li>
+      <li><a href="javascript:history.go(-1);">Previous</a></li>
+    </ul>
+  </section>
+</nav>
+
+<div id="viewDiv" style=" padding: 0; margin: 0; height: 95%; width: 100%;">
+  
+</div>
+<script>
+
+</script>
+
+ 
+
+</body>
+</html>

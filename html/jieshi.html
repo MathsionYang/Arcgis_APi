@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Bootstrap 附加导航（Affix）插件</title>
+<link rel="stylesheet" href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="http://cdn.static.runoob.com/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<style>
+/* Custom Styles */
+    ul.nav-tabs{
+        width: 140px;
+        margin-top: 20px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.067);
+    }
+    ul.nav-tabs li{
+        margin: 0;
+        border-top: 1px solid #ddd;
+    }
+    ul.nav-tabs li:first-child{
+        border-top: none;
+    }
+    ul.nav-tabs li a{
+        margin: 0;
+        padding: 8px 16px;
+        border-radius: 0;
+    }
+    ul.nav-tabs li.active a, ul.nav-tabs li.active a:hover{
+        color: #fff;
+        background: #0088cc;
+        border: 1px solid #0088cc;
+    }
+    ul.nav-tabs li:first-child a{
+        border-radius: 4px 4px 0 0;
+    }
+    ul.nav-tabs li:last-child a{
+        border-radius: 0 0 4px 4px;
+    }
+    ul.nav-tabs.affix{
+        top: 30px; /* Set the top position of pinned element */
+    }
+</style>
+</head>
+<body data-spy="scroll" data-target="#myScrollspy">
+<div class="container">
+   <div class="jumbotron">
+        <h1>ArcGIS API for javascript4.3（RouteTask篇）</h1>
+    </div>
+    <div class="row">
+        <div class="col-xs-3" id="myScrollspy">
+            <ul class="nav nav-tabs nav-stacked" data-spy="affix" data-offset-top="125">
+                <li class="active"><a href="#section-1">第一部分</a></li>
+                <li><a href="#section-2">第二部分</a></li>
+                <li><a href="#section-3">第三部分</a></li>
+                <li><a href="#section-4">第四部分</a></li>
+                <li><a href="#section-5">第五部分</a></li>
+            </ul>
+        </div>
+        <div class="col-xs-9">
+            <h2 id="section-1">第一部分</h2>
+			<p>功能实现：</p>
+           <p> RouteTask路径规划，在图层（GraphicsLayer）上添加停靠点，计算停靠点之间得路线，以LineSymbol实现路线展示</p>
+            <hr>
+            <h2 id="section-2">第二部分</h2>
+			<p> 引用</p>
+			<p>"esri/Map", </p>
+              <p> "esri/views/MapView", </p>
+              <p> "esri/Graphic", </p>
+              <p> "esri/layers/GraphicsLayer", </p>
+              <p> "esri/tasks/RouteTask", </p>
+             <p>  "esri/tasks/support/RouteParameters", </p>
+			 <p> "esri/tasks/support/FeatureSet", </p>
+			 <p> "esri/symbols/SimpleMarkerSymbol", </p>
+			 <p> "esri/symbols/SimpleLineSymbol", </p>
+			 <p> "esri/Color", </p>
+			 <p> "esri/core/urlUtils", </p>
+			 <p> "dojo/on", </p>
+			 <p> "dojo/domReady!" </p>
+            <hr>
+            <h2 id="section-3">第三部分</h2>
+			<p> route要素服务器：</p>
+				<p> urlUtils.addProxyRule({</p>
+                  <p>  urlPrefix: "route.arcgis.com",</p>
+					<p>	proxyUrl: "/sproxy/"</p>
+					<p>  });</p>
+				 <p> var routeTask = new RouteTask({</p>
+					<p>	url: "https://route.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World"</p>
+					<p>  });</p>
+					<p>  urlUtils.addProxyRule避免引用服务器是出现登陆情况，图层来自</p>
+            <hr>
+            <h2 id="section-4">第四部分</h2>
+			<p>var routeParams = new RouteParameters({</p>
+				<p>stops: new FeatureSet(),</p>
+				<p>outSpatialReference: { // autocasts as new SpatialReference()</p>
+				<p>  wkid: 3857</p>
+				<p>} });</p>
+			 
+			  <p> new FeatureSet()获取feature,在通过feature获取Graphic数组，graphic里有symbol
+			   当地图被点击时，事件监听器调用函数addStop（），该函数在点击位置添加一个SimpleMarkerSymbol作为停止。
+			   该功能还在Route Parameter中添加点作为停止，并检查是否存在2个以上，路由通过调RouteTask.solve函数解决，
+			   然后将RouteParameter传递给求解函数。</p>
+            <hr>
+            <h2 id="section-5">第五部分</h2>
+			<p>function addStop(event) {</p>
+			  <p> var stop = new Graphic({</p>
+				<p>	  geometry: event.mapPoint,</p>
+				<p>	  symbol: stopSymbol</p>
+				<p>	});</p>
+				<p>	routeLyr.add(stop);</p>
+			  <p> routeParams.stops.features.push(stop);</p>
+				<p>	if (routeParams.stops.features.length >= 2) {</p>
+				<p>	  routeTask.solve(routeParams).then(showRoute);</p>
+				<p>	}</p>
+				<p>  }</p>
+
+<p>showRoute回调函数获取结果对象中存储的routeResult，并对路由结果符号系统应用SimpleLineSymbol，然后将RouteResult添加到图形层中</p>
+
+			<p> function showRoute(data) {</p>
+				<p>	var routeResult = data.routeResults[0].route;</p>
+				<p>	routeResult.symbol = routeSymbol;</p>
+				<p>	routeLyr.add(routeResult);</p>
+				<p>  }</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>
